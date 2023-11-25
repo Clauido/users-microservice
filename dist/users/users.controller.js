@@ -16,93 +16,49 @@ exports.UsersController = void 0;
 const common_1 = require("@nestjs/common");
 const users_service_1 = require("./users.service");
 const create_user_dto_1 = require("./dto/create-user.dto");
-const enums_1 = require("@nestjs/common/enums");
-const exceptions_1 = require("@nestjs/common/exceptions");
 const update_user_dto_1 = require("./dto/update-user.dto");
 let UsersController = class UsersController {
     constructor(userService) {
         this.userService = userService;
     }
-    async getUser(idOrEmail, byId = false) {
-        try {
-            let user;
-            if (byId) {
-                const id = parseInt(idOrEmail, 10);
-                if (isNaN(id)) {
-                    throw new exceptions_1.HttpException('Invalid ID format', enums_1.HttpStatus.BAD_REQUEST);
-                }
-                user = await this.userService.getUserById(id);
-            }
-            else {
-                const lowercaseEmail = idOrEmail.toLowerCase();
-                user = await this.userService.getUserByEmail(lowercaseEmail);
-            }
-            if (!user) {
-                throw new exceptions_1.HttpException('User not found', enums_1.HttpStatus.NOT_FOUND);
-            }
-            return user;
-        }
-        catch (error) {
-            throw error;
-        }
+    async getUsers() {
+        return await this.userService.getUsers();
     }
-    getUsers() {
-        return this.userService.getUsers();
+    async getUser(idOrEmail, byId = false) {
+        if (byId) {
+            const id = parseInt(idOrEmail, 10);
+            return await this.userService.getUserById(id);
+        }
+        const lowercaseEmail = idOrEmail.toLowerCase();
+        return await this.userService.getUserByEmail(lowercaseEmail);
     }
     createUser(newUser) {
         return this.userService.createUser(newUser);
     }
     async deleteUser(idOrEmail, byId = false) {
-        try {
-            let user;
-            if (byId) {
-                const id = parseInt(idOrEmail, 10);
-                if (isNaN(id)) {
-                    throw new exceptions_1.HttpException('Invalid ID format', enums_1.HttpStatus.BAD_REQUEST);
-                }
-                if (this.userService.getUserById(user.id)) {
-                    return await this.userService.deleteUserById(id);
-                }
-            }
-            else {
-                const lowercaseEmail = idOrEmail.toLowerCase();
-                const user = await this.userService.getUserByEmail(lowercaseEmail);
-                if (user === null) {
-                    throw new exceptions_1.HttpException('User Not Found', enums_1.HttpStatus.BAD_REQUEST);
-                }
-                return await this.userService.deleteUserById(user.id);
-            }
+        if (byId) {
+            const id = parseInt(idOrEmail, 10);
+            return await this.userService.deleteUserById(id);
         }
-        catch (error) {
-            throw error;
-        }
+        const lowercaseEmail = idOrEmail.toLowerCase();
+        return await this.userService.deleteUserByEmail(lowercaseEmail);
     }
     async updateUser(idOrEmail, user, byId = false) {
-        try {
-            if (byId) {
-                const id = parseInt(idOrEmail, 10);
-                if (isNaN(id)) {
-                    throw new exceptions_1.HttpException('Invalid ID format', enums_1.HttpStatus.BAD_REQUEST);
-                }
-                if (this.userService.getUserById(id)) {
-                    return await this.userService.updateUser(id, user);
-                }
-            }
-            else {
-                const lowercaseEmail = idOrEmail.toLowerCase();
-                const user_pivot = await this.userService.getUserByEmail(lowercaseEmail);
-                if (!user_pivot) {
-                    throw new exceptions_1.NotFoundException('User Not Found: The specified email does not exist.');
-                }
-                return await this.userService.updateUser(user_pivot.id, user);
-            }
+        if (byId) {
+            const id = parseInt(idOrEmail, 10);
+            return await this.userService.updateUserById(id, user);
         }
-        catch (error) {
-            throw error;
-        }
+        const lowercaseEmail = idOrEmail.toLowerCase();
+        return await this.userService.updateUserEmail(lowercaseEmail, user);
     }
 };
 exports.UsersController = UsersController;
+__decorate([
+    (0, common_1.Get)(),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "getUsers", null);
 __decorate([
     (0, common_1.Get)(':idOrEmail'),
     __param(0, (0, common_1.Param)('idOrEmail')),
@@ -112,17 +68,11 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "getUser", null);
 __decorate([
-    (0, common_1.Get)(),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
-], UsersController.prototype, "getUsers", null);
-__decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_user_dto_1.CreateUserDto]),
-    __metadata("design:returntype", Promise)
+    __metadata("design:returntype", void 0)
 ], UsersController.prototype, "createUser", null);
 __decorate([
     (0, common_1.Delete)(':idOrEmail'),

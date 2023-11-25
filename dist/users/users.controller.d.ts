@@ -5,9 +5,9 @@ import { UpdateUserDto } from './dto/update-user.dto';
 export declare class UsersController {
     private userService;
     constructor(userService: UsersService);
-    getUser(idOrEmail: string, byId?: boolean): Promise<User>;
     getUsers(): Promise<User[]>;
+    getUser(idOrEmail: string, byId?: boolean): Promise<User>;
     createUser(newUser: CreateUserDto): Promise<User>;
     deleteUser(idOrEmail: string, byId?: boolean): Promise<import("typeorm").DeleteResult>;
-    updateUser(idOrEmail: string, user: UpdateUserDto, byId?: boolean): Promise<import("typeorm").UpdateResult>;
+    updateUser(idOrEmail: string, user: UpdateUserDto, byId?: boolean): Promise<User & UpdateUserDto>;
 }

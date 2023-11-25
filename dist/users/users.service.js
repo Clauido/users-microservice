@@ -18,35 +18,102 @@ const user_entity_1 = require("../user.entity");
 const typeorm_1 = require("typeorm");
 const typeorm_2 = require("@nestjs/typeorm");
 let UsersService = class UsersService {
-    constructor(userRerpository) {
-        this.userRerpository = userRerpository;
+    constructor(userRepository) {
+        this.userRepository = userRepository;
     }
-    createUser(user) {
-        const newUser = this.userRerpository.create(user);
-        return this.userRerpository.save(newUser);
+    notFoundUser(user) {
+        if (!user) {
+            throw new common_1.HttpException('User not found', common_1.HttpStatus.NOT_FOUND);
+        }
     }
-    getUsers() {
-        return this.userRerpository.find();
+    notRowsAffected(result) {
+        if (result == 0) {
+            throw new common_1.HttpException('User not found', common_1.HttpStatus.NOT_FOUND);
+        }
     }
-    getUserById(id) {
-        return this.userRerpository.findOne({
+    notNumberForId(id) {
+        if (isNaN(id)) {
+            throw new common_1.HttpException('Invalid ID format', common_1.HttpStatus.BAD_REQUEST);
+        }
+    }
+    notValidEmail(userFound) {
+        if (!userFound) {
+            throw new common_1.HttpException('User Not Found: The specified email does not exist.', common_1.HttpStatus.NOT_FOUND);
+        }
+    }
+    async createUser(user) {
+        const userFound = await this.userRepository.findOne({
+            where: {
+                email: user.email,
+            },
+        });
+        if (userFound) {
+            throw new common_1.HttpException('This Email is already in use', common_1.HttpStatus.CONFLICT);
+        }
+        const newUser = this.userRepository.create(user);
+        return this.userRepository.save(newUser);
+    }
+    async getUsers() {
+        return await this.userRepository.find();
+    }
+    async getUserById(id) {
+        this.notNumberForId(id);
+        const userFound = await this.userRepository.findOne({
             where: {
                 id,
             },
         });
+        this.notFoundUser(userFound);
+        return userFound;
     }
-    getUserByEmail(email) {
-        return this.userRerpository.findOne({
+    async getUserByEmail(email) {
+        const userFound = await this.userRepository.findOne({
             where: {
                 email,
             },
         });
+        this.notValidEmail(userFound);
+        return userFound;
     }
-    deleteUserById(id) {
-        return this.userRerpository.delete({ id });
+    async deleteUserById(id) {
+        this.notNumberForId(id);
+        const result = await this.userRepository.delete({ id });
+        this.notRowsAffected(result.affected);
+        return result;
     }
-    updateUser(id, user) {
-        return this.userRerpository.update({ id }, user);
+    async deleteUserByEmail(email) {
+        const userFound = await this.userRepository.findOne({
+            where: {
+                email,
+            },
+        });
+        this.notValidEmail(userFound);
+        const result = await this.userRepository.delete(userFound.id);
+        this.notRowsAffected(result.affected);
+        return result;
+    }
+    async updateUserById(id, user) {
+        this.notNumberForId(id);
+        const userFound = await this.userRepository.findOne({
+            where: {
+                id,
+            },
+        });
+        this.notFoundUser(userFound);
+        const updateUser = Object.assign(userFound, user);
+        return this.userRepository.save(updateUser);
+    }
+    async updateUserEmail(email, user) {
+        const userFound = await this.userRepository.findOne({
+            where: {
+                email,
+            },
+        });
+        if (!userFound) {
+            throw new common_1.HttpException('User Not Found: The specified email does not exist.', common_1.HttpStatus.NOT_FOUND);
+        }
+        const updateUser = Object.assign(userFound, user);
+        return this.userRepository.save(updateUser);
     }
 };
 exports.UsersService = UsersService;
